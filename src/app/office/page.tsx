@@ -33,15 +33,25 @@ const deptLabelColors: Record<string, string> = {
 
 export default function OfficePage() {
   const agents = useQuery(api.agents.list, {});
+  const agentStatuses = useQuery(api.agentStatus.list, {});
   const tasks = useQuery(api.tasks.list, {});
 
-  const cortanaTasks = tasks?.filter(
-    (t) => t.assignee === "cortana" && t.status === "in_progress"
-  );
+  const cortanaStatus = agentStatuses?.find((s) => s.agentId === "main");
+
+  // Merge agent metadata with live status
+  const mergedAgents = agents?.map((agent) => {
+    const liveStatus = agentStatuses?.find((s) => s.agentId === agent.agentId);
+    return {
+      ...agent,
+      status: liveStatus?.status === "running" ? "working" : liveStatus?.status === "idle" ? "idle" : "offline",
+      currentTask: liveStatus?.currentTask,
+      liveStatus: liveStatus?.status,
+    };
+  });
 
   // Group by department
-  const departments = new Map<string, NonNullable<typeof agents>>();
-  agents?.forEach((a) => {
+  const departments = new Map<string, NonNullable<typeof mergedAgents>>();
+  mergedAgents?.forEach((a) => {
     const dept = a.department ?? "Other";
     if (!departments.has(dept)) departments.set(dept, []);
     departments.get(dept)!.push(a);
@@ -86,7 +96,7 @@ export default function OfficePage() {
               </div>
             </div>
             {/* Cortana */}
-            <div className="bg-zinc-800/80 backdrop-blur rounded-xl border border-amber-500/20 p-4">
+            <div className="bg-zinc-800/80 backdrop-blur rounded-xl border border-amber-500/20 p-4 relative">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-lg">
                   ⚡
@@ -94,13 +104,25 @@ export default function OfficePage() {
                 <div className="flex-1">
                   <p className="text-sm font-bold">Cortana</p>
                   <p className="text-[10px] text-amber-400">COO / Chief of Staff</p>
-                  {(cortanaTasks ?? []).length > 0 && (
+                  {cortanaStatus?.currentTask && (
                     <p className="text-[9px] text-amber-300 mt-0.5 truncate">
-                      🔥 {cortanaTasks![0].title}
+                      🔥 {cortanaStatus.currentTask}
                     </p>
                   )}
                 </div>
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                {/* LED Status on the RIGHT */}
+                {cortanaStatus && (
+                  <div
+                    className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                      cortanaStatus.status === "running"
+                        ? "bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)] animate-pulse"
+                        : cortanaStatus.status === "idle"
+                        ? "bg-yellow-500 shadow-[0_0_12px_rgba(234,179,8,0.6)]"
+                        : "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.6)]"
+                    }`}
+                    title={cortanaStatus.status.charAt(0).toUpperCase() + cortanaStatus.status.slice(1)}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -132,7 +154,7 @@ export default function OfficePage() {
 
                     {/* Department Head */}
                     {head && (
-                      <div className="bg-zinc-800/60 rounded-lg p-3 mb-3 flex items-center gap-3">
+                      <div className="bg-zinc-800/60 rounded-lg p-3 mb-3 flex items-center gap-3 relative">
                         <div className="w-9 h-9 rounded-full bg-zinc-700/50 flex items-center justify-center text-base">
                           {head.emoji ?? "🤖"}
                         </div>
@@ -145,9 +167,19 @@ export default function OfficePage() {
                             </p>
                           )}
                         </div>
-                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                          head.status === "working" ? "bg-green-500 animate-pulse" : head.status === "offline" ? "bg-red-500" : "bg-zinc-500"
-                        }`} />
+                        {/* LED Status on the RIGHT */}
+                        {head.liveStatus && (
+                          <div
+                            className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                              head.liveStatus === "running"
+                                ? "bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)] animate-pulse"
+                                : head.liveStatus === "idle"
+                                ? "bg-yellow-500 shadow-[0_0_12px_rgba(234,179,8,0.6)]"
+                                : "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.6)]"
+                            }`}
+                            title={head.liveStatus.charAt(0).toUpperCase() + head.liveStatus.slice(1)}
+                          />
+                        )}
                       </div>
                     )}
 
@@ -156,7 +188,7 @@ export default function OfficePage() {
                       {members.map((agent) => (
                         <div
                           key={agent._id}
-                          className={`bg-zinc-800/40 rounded-lg p-2 text-center transition-colors ${
+                          className={`bg-zinc-800/40 rounded-lg p-2 text-center transition-colors relative ${
                             agent.status === "working" ? "ring-1 ring-green-500/30" : ""
                           } ${agent.status === "offline" ? "opacity-40" : ""}`}
                         >
@@ -169,6 +201,19 @@ export default function OfficePage() {
                             <p className="text-[7px] text-amber-400 truncate mt-0.5">
                               {agent.currentTask}
                             </p>
+                          )}
+                          {/* LED Status on the TOP RIGHT */}
+                          {agent.liveStatus && (
+                            <div
+                              className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
+                                agent.liveStatus === "running"
+                                  ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse"
+                                  : agent.liveStatus === "idle"
+                                  ? "bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.6)]"
+                                  : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"
+                              }`}
+                              title={agent.liveStatus.charAt(0).toUpperCase() + agent.liveStatus.slice(1)}
+                            />
                           )}
                         </div>
                       ))}
@@ -185,14 +230,14 @@ export default function OfficePage() {
       <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
         <h2 className="text-lg font-semibold mb-4">Activity Feed</h2>
         <div className="space-y-2">
-          {(agents ?? [])
+          {(mergedAgents ?? [])
             .filter((a) => a.status === "working")
             .map((agent) => (
               <div
                 key={agent._id}
                 className="flex items-center gap-3 py-2 px-3 rounded-lg bg-zinc-800/50"
               >
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
                 <span className="text-base">{agent.emoji ?? "🤖"}</span>
                 <span className="text-sm">
                   <strong>{agent.name}</strong>{" "}
@@ -203,7 +248,7 @@ export default function OfficePage() {
                 <span className="text-[10px] text-zinc-600 ml-auto">{agent.department}</span>
               </div>
             ))}
-          {(agents ?? []).filter((a) => a.status === "working").length === 0 && (
+          {(mergedAgents ?? []).filter((a) => a.status === "working").length === 0 && (
             <p className="text-zinc-500 text-sm">
               All agents are idle. Assign tasks to put them to work!
             </p>

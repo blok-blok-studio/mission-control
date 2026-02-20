@@ -17,10 +17,23 @@ const tierBadge: Record<string, { bg: string; text: string; label: string }> = {
   haiku: { bg: "bg-zinc-600/40", text: "text-zinc-400", label: "Haiku" },
 };
 
-const statusDot: Record<string, string> = {
-  idle: "bg-zinc-500",
-  working: "bg-green-500 animate-pulse",
-  offline: "bg-red-500",
+// Live status from agentStatus table
+const statusConfig: Record<string, { bg: string; glow: string; dot: string }> = {
+  running: { 
+    bg: "bg-green-500",
+    glow: "shadow-[0_0_12px_rgba(34,197,94,0.6)]",
+    dot: "bg-green-500 animate-pulse"
+  },
+  idle: { 
+    bg: "bg-yellow-500",
+    glow: "shadow-[0_0_12px_rgba(234,179,8,0.6)]",
+    dot: "bg-yellow-500"
+  },
+  stopped: { 
+    bg: "bg-red-500",
+    glow: "shadow-[0_0_12px_rgba(239,68,68,0.6)]",
+    dot: "bg-red-500"
+  },
 };
 
 // Org structure definition
@@ -48,6 +61,7 @@ const orgStructure = {
 
 export default function OrgChartPage() {
   const agents = useQuery(api.agents.list, {});
+  const agentStatuses = useQuery(api.agentStatus.list, {});
   const seedAgents = useMutation(api.agents.seed);
 
   // Auto-seed if empty
@@ -57,8 +71,29 @@ export default function OrgChartPage() {
     }
   }, [agents, seedAgents]);
 
-  const getAgent = (agentId: string) => agents?.find((a) => a.agentId === agentId);
-  const getDeptHead = (name: string) => agents?.find((a) => a.name === name);
+  // Merge agent metadata with live status
+  const getAgent = (agentId: string) => {
+    const agent = agents?.find((a) => a.agentId === agentId);
+    const liveStatus = agentStatuses?.find((s) => s.agentId === agentId);
+    if (!agent) return undefined;
+    return {
+      ...agent,
+      status: liveStatus?.status === "running" ? "working" : liveStatus?.status === "idle" ? "idle" : "offline",
+      currentTask: liveStatus?.currentTask,
+      liveStatus: liveStatus?.status, // Keep original for LED effect
+    };
+  };
+  const getDeptHead = (name: string) => {
+    const agent = agents?.find((a) => a.name === name);
+    const liveStatus = agent?.agentId ? agentStatuses?.find((s) => s.agentId === agent.agentId) : undefined;
+    if (!agent) return undefined;
+    return {
+      ...agent,
+      status: liveStatus?.status === "running" ? "working" : liveStatus?.status === "idle" ? "idle" : "offline",
+      currentTask: liveStatus?.currentTask,
+      liveStatus: liveStatus?.status,
+    };
+  };
 
   const deptHeads = [
     { key: "nova", name: "Nova", dept: "Marketing" },
@@ -94,6 +129,8 @@ export default function OrgChartPage() {
           subtitle="Orchestration, delegation, automation"
           model="Claude Opus 4"
           tier="opus"
+          liveStatus={agentStatuses?.find((s) => s.agentId === "main")?.status}
+          currentTask={agentStatuses?.find((s) => s.agentId === "main")?.currentTask}
         />
         <Connector />
       </div>
@@ -113,7 +150,7 @@ export default function OrgChartPage() {
           return (
             <div key={key} className="space-y-3">
               {/* Department Head */}
-              <div className={`bg-zinc-900 ${colors.border} border rounded-xl p-4 text-center`}>
+              <div className={`bg-zinc-900 ${colors.border} border rounded-xl p-4 text-center relative`}>
                 <div className={`w-11 h-11 rounded-full ${colors.bg} flex items-center justify-center text-lg mx-auto mb-2`}>
                   {head?.emoji ?? "🤖"}
                 </div>
@@ -124,10 +161,15 @@ export default function OrgChartPage() {
                     {head.model}
                   </span>
                 )}
-                {head && (
-                  <div className="flex items-center justify-center gap-1.5 mt-2">
-                    <span className={`w-1.5 h-1.5 rounded-full ${statusDot[head.status]}`} />
-                    <span className="text-[10px] text-zinc-500 capitalize">{head.status}</span>
+                {/* LED Status on the RIGHT side */}
+                {head && head.liveStatus && (
+                  <div className="absolute top-4 right-4">
+                    <div
+                      className={`w-3 h-3 rounded-full ${statusConfig[head.liveStatus].bg} ${statusConfig[head.liveStatus].glow} ${
+                        head.liveStatus === "running" ? "animate-pulse" : ""
+                      }`}
+                      title={head.liveStatus.charAt(0).toUpperCase() + head.liveStatus.slice(1)}
+                    />
                   </div>
                 )}
               </div>
@@ -186,6 +228,8 @@ function LeaderCard({
   subtitle,
   model,
   tier,
+  liveStatus,
+  currentTask,
 }: {
   name: string;
   role: string;
@@ -194,9 +238,13 @@ function LeaderCard({
   subtitle: string;
   model?: string;
   tier?: string;
+  liveStatus?: "running" | "idle" | "stopped";
+  currentTask?: string;
 }) {
+  const statusStyle = liveStatus ? statusConfig[liveStatus] : statusConfig.idle;
+  
   return (
-    <div className="bg-zinc-900 border border-amber-500/30 rounded-xl px-6 py-4 w-80 text-center">
+    <div className="bg-zinc-900 border border-amber-500/30 rounded-xl px-6 py-4 w-80 text-center relative">
       <div className="w-12 h-12 rounded-full bg-amber-500/15 flex items-center justify-center text-xl mx-auto mb-2">
         {emoji}
       </div>
@@ -208,10 +256,22 @@ function LeaderCard({
           {model}
         </span>
       )}
-      <div className="flex items-center justify-center gap-1.5 mt-2">
-        <span className="w-2 h-2 rounded-full bg-green-500" />
-        <span className="text-[10px] text-zinc-500">Active</span>
-      </div>
+      {currentTask && (
+        <p className="text-[9px] text-amber-400 bg-amber-500/10 px-2 py-1 rounded mt-2 truncate">
+          🔥 {currentTask}
+        </p>
+      )}
+      {/* LED Status on the RIGHT side */}
+      {liveStatus && (
+        <div className="absolute top-4 right-4">
+          <div
+            className={`w-4 h-4 rounded-full ${statusStyle.bg} ${statusStyle.glow} ${
+              liveStatus === "running" ? "animate-pulse" : ""
+            }`}
+            title={liveStatus.charAt(0).toUpperCase() + liveStatus.slice(1)}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -229,6 +289,7 @@ function AgentCard({
     tier?: string;
     model?: string;
     description: string;
+    liveStatus?: "running" | "idle" | "stopped";
   };
   agentId: string;
 }) {
@@ -241,21 +302,27 @@ function AgentCard({
   }
 
   const badge = tierBadge[agent.tier ?? "sonnet"];
+  const liveStatusKey = agent.liveStatus ?? "stopped";
+  const statusStyle = statusConfig[liveStatusKey];
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 hover:border-zinc-700 transition-colors group">
       <div className="flex items-center gap-2.5">
         <span className="text-base flex-shrink-0">{agent.emoji ?? "🤖"}</span>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-xs font-semibold truncate">{agent.name}</p>
-            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusDot[agent.status]}`} />
-          </div>
+          <p className="text-xs font-semibold truncate">{agent.name}</p>
           <p className="text-[10px] text-zinc-500 truncate">{agent.role}</p>
         </div>
         <span className={`text-[8px] px-1 py-0.5 rounded flex-shrink-0 ${badge.bg} ${badge.text}`}>
           {badge.label}
         </span>
+        {/* LED Status Indicator on the RIGHT */}
+        <div
+          className={`w-3 h-3 rounded-full flex-shrink-0 ${statusStyle.bg} ${statusStyle.glow} ${
+            liveStatusKey === "running" ? "animate-pulse" : ""
+          }`}
+          title={liveStatusKey.charAt(0).toUpperCase() + liveStatusKey.slice(1)}
+        />
       </div>
       {agent.currentTask && (
         <p className="text-[9px] text-amber-400 bg-amber-500/10 px-2 py-1 rounded mt-2 truncate">
