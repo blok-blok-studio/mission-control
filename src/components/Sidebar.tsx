@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import {
   LayoutGrid,
   ClipboardList,
@@ -34,6 +36,7 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const pendingCount = useQuery(api.approvals.pendingCount, {});
 
   return (
     <aside className="fixed left-0 top-0 h-full w-56 bg-zinc-950 border-r border-zinc-800/60 flex flex-col z-50">
@@ -65,6 +68,11 @@ export function Sidebar() {
             >
               <Icon size={16} strokeWidth={1.8} />
               {item.label}
+              {item.href === "/approvals" && (pendingCount ?? 0) > 0 && (
+                <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-medium">
+                  {pendingCount}
+                </span>
+              )}
             </Link>
           );
         })}

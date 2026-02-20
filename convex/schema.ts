@@ -174,4 +174,40 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_department", ["department"])
     .index("by_agentId", ["agentId"]),
+
+  // Approvals
+  approvals: defineTable({
+    title: v.string(),
+    description: v.string(),
+    category: v.union(
+      v.literal("proposal"),
+      v.literal("post"),
+      v.literal("email"),
+      v.literal("deploy"),
+      v.literal("spend"),
+      v.literal("other")
+    ),
+    priority: v.union(
+      v.literal("low"),
+      v.literal("medium"),
+      v.literal("high"),
+      v.literal("urgent")
+    ),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("approved"),
+      v.literal("rejected"),
+      v.literal("expired")
+    ),
+    submittedBy: v.string(),
+    submittedByEmoji: v.optional(v.string()),
+    reviewNote: v.optional(v.string()),
+    reviewedAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    actionData: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_status", ["status"])
+    .index("by_category", ["category"])
+    .index("by_submittedBy", ["submittedBy"]),
 });

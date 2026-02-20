@@ -9,6 +9,7 @@
  */
 
 import type * as agents from "../agents.js";
+import type * as approvals from "../approvals.js";
 import type * as content from "../content.js";
 import type * as docs from "../docs.js";
 import type * as events from "../events.js";
@@ -24,6 +25,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   agents: typeof agents;
+  approvals: typeof approvals;
   content: typeof content;
   docs: typeof docs;
   events: typeof events;
