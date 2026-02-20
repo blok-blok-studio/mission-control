@@ -76,22 +76,24 @@ export default function OrgChartPage() {
     const agent = agents?.find((a) => a.agentId === agentId);
     const liveStatus = agentStatuses?.find((s) => s.agentId === agentId);
     if (!agent) return undefined;
+    const mappedStatus = (liveStatus?.status === "running" ? "working" : liveStatus?.status === "idle" ? "idle" : "offline") as "idle" | "working" | "offline";
     return {
       ...agent,
-      status: liveStatus?.status === "running" ? "working" : liveStatus?.status === "idle" ? "idle" : "offline",
+      status: mappedStatus,
       currentTask: liveStatus?.currentTask,
-      liveStatus: liveStatus?.status, // Keep original for LED effect
+      liveStatus: liveStatus?.status as "running" | "idle" | "stopped" | undefined,
     };
   };
   const getDeptHead = (name: string) => {
     const agent = agents?.find((a) => a.name === name);
     const liveStatus = agent?.agentId ? agentStatuses?.find((s) => s.agentId === agent.agentId) : undefined;
     if (!agent) return undefined;
+    const mappedStatus = (liveStatus?.status === "running" ? "working" : liveStatus?.status === "idle" ? "idle" : "offline") as "idle" | "working" | "offline";
     return {
       ...agent,
-      status: liveStatus?.status === "running" ? "working" : liveStatus?.status === "idle" ? "idle" : "offline",
+      status: mappedStatus,
       currentTask: liveStatus?.currentTask,
-      liveStatus: liveStatus?.status,
+      liveStatus: liveStatus?.status as "running" | "idle" | "stopped" | undefined,
     };
   };
 
