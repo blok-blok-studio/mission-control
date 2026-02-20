@@ -138,8 +138,24 @@ export default function OrgChartPage() {
       </div>
 
       {/* Horizontal connector to 4 departments */}
-      <div className="flex justify-center">
+      <div className="flex justify-center relative">
         <div className="w-[90%] h-px bg-zinc-700" />
+      </div>
+
+      {/* Vertical drop lines to each department head */}
+      <div className="grid grid-cols-4 gap-5">
+        <div className="flex justify-center">
+          <div className="w-px h-6 bg-zinc-700" />
+        </div>
+        <div className="flex justify-center">
+          <div className="w-px h-6 bg-zinc-700" />
+        </div>
+        <div className="flex justify-center">
+          <div className="w-px h-6 bg-zinc-700" />
+        </div>
+        <div className="flex justify-center">
+          <div className="w-px h-6 bg-zinc-700" />
+        </div>
       </div>
 
       {/* Department Heads + Their Teams */}
@@ -178,7 +194,7 @@ export default function OrgChartPage() {
 
               {/* Connector from head to divisions */}
               <div className="flex justify-center">
-                <div className="w-px h-3 bg-zinc-800" />
+                <div className="w-px h-6 bg-zinc-700" />
               </div>
 
               {/* Divisions */}
