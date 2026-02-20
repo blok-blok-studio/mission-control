@@ -137,25 +137,17 @@ export default function OrgChartPage() {
         <Connector />
       </div>
 
-      {/* Horizontal connector to 4 departments */}
-      <div className="flex justify-center relative">
-        <div className="w-[90%] h-px bg-zinc-700" />
-      </div>
-
-      {/* Vertical drop lines to each department head */}
-      <div className="grid grid-cols-4 gap-5">
-        <div className="flex justify-center">
-          <div className="w-px h-6 bg-zinc-700" />
-        </div>
-        <div className="flex justify-center">
-          <div className="w-px h-6 bg-zinc-700" />
-        </div>
-        <div className="flex justify-center">
-          <div className="w-px h-6 bg-zinc-700" />
-        </div>
-        <div className="flex justify-center">
-          <div className="w-px h-6 bg-zinc-700" />
-        </div>
+      {/* Tree connector: Cortana → Department Heads */}
+      <div className="flex justify-center relative h-12">
+        {/* Vertical drop from Cortana */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[2px] h-6 bg-zinc-600" />
+        {/* Horizontal bar spanning all dept heads */}
+        <div className="absolute top-6 left-[12%] right-[12%] h-[2px] bg-zinc-600" />
+        {/* Vertical drops to each dept head */}
+        <div className="absolute top-6 left-[18.5%] w-[2px] h-6 bg-zinc-600" />
+        <div className="absolute top-6 left-[40.5%] w-[2px] h-6 bg-zinc-600" />
+        <div className="absolute top-6 left-[59.5%] w-[2px] h-6 bg-zinc-600" />
+        <div className="absolute top-6 left-[81.5%] w-[2px] h-6 bg-zinc-600" />
       </div>
 
       {/* Department Heads + Their Teams */}
@@ -192,30 +184,90 @@ export default function OrgChartPage() {
                 )}
               </div>
 
-              {/* Connector from head to divisions */}
-              <div className="flex justify-center">
-                <div className="w-px h-6 bg-zinc-700" />
+              {/* Tree connector from head to divisions */}
+              <div className="relative h-8 flex justify-center">
+                {/* Vertical drop from dept head */}
+                <div className="absolute top-0 w-[2px] h-4 bg-zinc-600" />
+                {/* Horizontal bar spanning divisions */}
+                {Object.keys(divisions).length > 1 && (
+                  <div className="absolute top-4 left-[20%] right-[20%] h-[2px] bg-zinc-600" />
+                )}
+                {/* Vertical drops to each division */}
+                {Object.keys(divisions).length === 1 ? (
+                  <div className="absolute top-4 w-[2px] h-4 bg-zinc-600" />
+                ) : Object.keys(divisions).length === 2 ? (
+                  <>
+                    <div className="absolute top-4 left-[30%] w-[2px] h-4 bg-zinc-600" />
+                    <div className="absolute top-4 right-[30%] w-[2px] h-4 bg-zinc-600" />
+                  </>
+                ) : Object.keys(divisions).length === 3 ? (
+                  <>
+                    <div className="absolute top-4 left-[25%] w-[2px] h-4 bg-zinc-600" />
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[2px] h-4 bg-zinc-600" />
+                    <div className="absolute top-4 right-[25%] w-[2px] h-4 bg-zinc-600" />
+                  </>
+                ) : (
+                  <>
+                    <div className="absolute top-4 left-[20%] w-[2px] h-4 bg-zinc-600" />
+                    <div className="absolute top-4 left-[40%] w-[2px] h-4 bg-zinc-600" />
+                    <div className="absolute top-4 right-[40%] w-[2px] h-4 bg-zinc-600" />
+                    <div className="absolute top-4 right-[20%] w-[2px] h-4 bg-zinc-600" />
+                  </>
+                )}
               </div>
 
               {/* Divisions */}
               {Object.entries(divisions).map(([divName, agentIds]) => (
-                <div key={divName} className="space-y-1.5">
-                  <p className={`text-[10px] font-semibold uppercase tracking-wider ${colors.text} px-2`}>
+                <div key={divName} className="mb-4">
+                  <p className={`text-[10px] font-semibold uppercase tracking-wider ${colors.text} px-2 text-center mb-2`}>
                     {divName}
                   </p>
-                  <div className="relative pl-4 space-y-1.5">
-                    {/* Continuous vertical line for the division */}
-                    <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-zinc-600" />
-                    {agentIds.map((agentId, idx) => {
-                      const agent = getAgent(agentId);
-                      return (
-                        <div key={agentId} className="relative">
-                          {/* Horizontal connector stub from vertical line to card */}
-                          <div className="absolute left-[-16px] top-1/2 w-4 h-[2px] bg-zinc-600" />
-                          <AgentCard agent={agent} agentId={agentId} />
+                  {/* Tree structure for agents in this division */}
+                  <div className="relative">
+                    {/* Single agent - just vertical line */}
+                    {agentIds.length === 1 && (
+                      <div className="flex flex-col items-center">
+                        <div className="w-[2px] h-4 bg-zinc-600" />
+                        <AgentCard agent={getAgent(agentIds[0])} agentId={agentIds[0]} />
+                      </div>
+                    )}
+                    
+                    {/* Multiple agents - tree structure */}
+                    {agentIds.length > 1 && (
+                      <div className="flex flex-col items-center">
+                        {/* Vertical drop from division label */}
+                        <div className="w-[2px] h-4 bg-zinc-600 mb-0" />
+                        {/* Horizontal bar + vertical drops container */}
+                        <div className="relative w-full h-6 mb-2">
+                          {/* Horizontal bar spanning agents */}
+                          <div 
+                            className="absolute top-0 h-[2px] bg-zinc-600"
+                            style={{
+                              left: `${100 / (agentIds.length * 2)}%`,
+                              right: `${100 / (agentIds.length * 2)}%`
+                            }}
+                          />
+                          {/* Vertical drops to each agent */}
+                          {agentIds.map((_, idx) => {
+                            const spacing = 100 / (agentIds.length + 1);
+                            const leftPercent = spacing * (idx + 1);
+                            return (
+                              <div
+                                key={idx}
+                                className="absolute top-0 w-[2px] h-6 bg-zinc-600"
+                                style={{ left: `${leftPercent}%`, transform: 'translateX(-1px)' }}
+                              />
+                            );
+                          })}
                         </div>
-                      );
-                    })}
+                        {/* Agent cards in a row */}
+                        <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${agentIds.length}, 1fr)` }}>
+                          {agentIds.map((agentId) => (
+                            <AgentCard key={agentId} agent={getAgent(agentId)} agentId={agentId} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
