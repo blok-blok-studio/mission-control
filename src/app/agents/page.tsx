@@ -129,8 +129,8 @@ export default function OrgChartPage() {
           emoji="⚡"
           color="amber"
           subtitle="Orchestration, delegation, automation"
-          model="Claude Opus 4"
-          tier="opus"
+          model={getAgent("main")?.model ?? "Claude Sonnet 4"}
+          tier={getAgent("main")?.tier ?? "sonnet"}
           liveStatus={agentStatuses?.find((s) => s.agentId === "main")?.status}
           currentTask={agentStatuses?.find((s) => s.agentId === "main")?.currentTask}
         />
