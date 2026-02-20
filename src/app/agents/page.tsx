@@ -138,8 +138,17 @@ export default function OrgChartPage() {
       </div>
 
       {/* Horizontal connector line from Cortana */}
-      <div className="flex justify-center">
+      <div className="flex justify-center relative">
         <div className="w-[2px] h-8 bg-zinc-600" />
+        {/* Horizontal bar spanning to all dept heads */}
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 w-[800px] h-[2px] bg-zinc-600" />
+        {/* Vertical drops to each dept head */}
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 w-[800px] flex justify-around">
+          <div className="w-[2px] h-8 bg-zinc-600" />
+          <div className="w-[2px] h-8 bg-zinc-600" />
+          <div className="w-[2px] h-8 bg-zinc-600" />
+          <div className="w-[2px] h-8 bg-zinc-600" />
+        </div>
       </div>
 
       {/* Department Heads + Their Teams - 4 columns side by side */}
@@ -179,8 +188,11 @@ export default function OrgChartPage() {
               {/* Vertical connector from dept head down */}
               <div className="w-[2px] h-8 bg-zinc-600" />
 
-              {/* Sub-agents stacked vertically */}
-              <div className="space-y-6 w-full max-w-[280px]">
+              {/* Sub-agents stacked vertically with connector lines */}
+              <div className="space-y-6 w-full max-w-[280px] relative">
+                {/* Continuous vertical line running down the left side */}
+                <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-zinc-600" />
+                
                 {Object.entries(divisions).map(([divName, agentIds]) => (
                   <div key={divName} className="space-y-3">
                     <p className={`text-xs font-semibold uppercase tracking-wider ${colors.text} text-center`}>
@@ -189,7 +201,13 @@ export default function OrgChartPage() {
                     {/* Agent cards stacked vertically */}
                     <div className="space-y-3 flex flex-col items-center">
                       {agentIds.map((agentId) => (
-                        <AgentCard key={agentId} agent={getAgent(agentId)} agentId={agentId} />
+                        <div key={agentId} className="relative w-full">
+                          {/* Horizontal branch from vertical line to agent card */}
+                          <div className="absolute left-0 top-1/2 w-4 h-[2px] bg-zinc-600" />
+                          <div className="ml-4">
+                            <AgentCard agent={getAgent(agentId)} agentId={agentId} />
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
