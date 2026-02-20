@@ -6,21 +6,30 @@ import { Circle } from "lucide-react";
 
 type AgentStatus = "running" | "idle" | "stopped";
 
-const statusConfig: Record<AgentStatus, { color: string; dotColor: string; label: string }> = {
+const statusConfig: Record<
+  AgentStatus,
+  { color: string; dotColor: string; label: string; glowColor: string; bgColor: string }
+> = {
   running: {
     color: "text-green-400",
     dotColor: "text-green-500",
     label: "Running",
+    glowColor: "shadow-[0_0_12px_rgba(34,197,94,0.6)]",
+    bgColor: "bg-green-500",
   },
   idle: {
     color: "text-yellow-400",
     dotColor: "text-yellow-500",
     label: "Idle",
+    glowColor: "shadow-[0_0_12px_rgba(234,179,8,0.6)]",
+    bgColor: "bg-yellow-500",
   },
   stopped: {
     color: "text-red-400",
     dotColor: "text-red-500",
     label: "Stopped",
+    glowColor: "shadow-[0_0_12px_rgba(239,68,68,0.6)]",
+    bgColor: "bg-red-500",
   },
 };
 
@@ -82,19 +91,23 @@ export function AgentStatusPanel() {
                 key={agent.agentId}
                 className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700/50 hover:border-zinc-600 transition-colors"
               >
-                <div className="flex items-start justify-between mb-2">
+                <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Circle
-                        className={`w-2.5 h-2.5 fill-current shrink-0 ${config.dotColor}`}
-                      />
-                      <h3 className="font-medium text-sm truncate">
-                        {agent.name}
-                      </h3>
-                    </div>
+                    <h3 className="font-medium text-sm truncate mb-1">
+                      {agent.name}
+                    </h3>
                     <p className="text-xs text-zinc-400 truncate">
                       {agent.role}
                     </p>
+                  </div>
+                  {/* Prominent status indicator on the RIGHT */}
+                  <div className="flex items-center shrink-0">
+                    <div
+                      className={`w-4 h-4 rounded-full ${config.bgColor} ${config.glowColor} ${
+                        agent.status === "running" ? "animate-pulse" : ""
+                      }`}
+                      title={config.label}
+                    />
                   </div>
                 </div>
                 {agent.currentTask && (
