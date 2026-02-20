@@ -137,58 +137,57 @@ export default function OrgChartPage() {
         <Connector />
       </div>
 
-      {/* Simple connector from Cortana down */}
+      {/* Horizontal connector line from Cortana */}
       <div className="flex justify-center">
         <div className="w-[2px] h-8 bg-zinc-600" />
       </div>
 
-      {/* Department Heads + Their Teams */}
-      <div className="space-y-12">
+      {/* Department Heads + Their Teams - 4 columns side by side */}
+      <div className="flex gap-4 overflow-x-auto pb-4 min-h-[600px]">
         {deptHeads.map(({ key, name, dept }) => {
           const head = getDeptHead(name);
           const colors = deptColors[dept] ?? deptColors.Engineering;
           const divisions = orgStructure[key as keyof typeof orgStructure];
 
           return (
-            <div key={key} className="space-y-4">
-              {/* Department Head - centered */}
-              <div className="flex flex-col items-center">
-                <div className={`bg-zinc-900 ${colors.border} border rounded-xl p-4 text-center relative w-80`}>
-                  <div className={`w-11 h-11 rounded-full ${colors.bg} flex items-center justify-center text-lg mx-auto mb-2`}>
-                    {head?.emoji ?? "🤖"}
-                  </div>
-                  <p className="font-bold text-sm">{name}</p>
-                  <p className="text-[11px] text-zinc-400">{head?.role ?? dept}</p>
-                  {head?.model && (
-                    <span className={`inline-block text-[9px] px-1.5 py-0.5 rounded mt-1.5 ${tierBadge[head.tier ?? "sonnet"].bg} ${tierBadge[head.tier ?? "sonnet"].text}`}>
-                      {head.model}
-                    </span>
-                  )}
-                  {/* LED Status on the RIGHT side */}
-                  {head && head.liveStatus && (
-                    <div className="absolute top-4 right-4">
-                      <div
-                        className={`w-3 h-3 rounded-full ${statusConfig[head.liveStatus].bg} ${statusConfig[head.liveStatus].glow} ${
-                          head.liveStatus === "running" ? "animate-pulse" : ""
-                        }`}
-                        title={head.liveStatus.charAt(0).toUpperCase() + head.liveStatus.slice(1)}
-                      />
-                    </div>
-                  )}
+            <div key={key} className="flex-1 min-w-[280px] flex flex-col items-center">
+              {/* Department Head Card */}
+              <div className={`bg-zinc-900 ${colors.border} border rounded-xl p-4 text-center relative w-full max-w-[280px]`}>
+                <div className={`w-11 h-11 rounded-full ${colors.bg} flex items-center justify-center text-lg mx-auto mb-2`}>
+                  {head?.emoji ?? "🤖"}
                 </div>
-                {/* Vertical connector from dept head down */}
-                <div className="w-[2px] h-8 bg-zinc-600" />
+                <p className="font-bold text-sm">{name}</p>
+                <p className="text-[11px] text-zinc-400">{head?.role ?? dept}</p>
+                {head?.model && (
+                  <span className={`inline-block text-[9px] px-1.5 py-0.5 rounded mt-1.5 ${tierBadge[head.tier ?? "sonnet"].bg} ${tierBadge[head.tier ?? "sonnet"].text}`}>
+                    {head.model}
+                  </span>
+                )}
+                {/* LED Status on the RIGHT side */}
+                {head && head.liveStatus && (
+                  <div className="absolute top-4 right-4">
+                    <div
+                      className={`w-3 h-3 rounded-full ${statusConfig[head.liveStatus].bg} ${statusConfig[head.liveStatus].glow} ${
+                        head.liveStatus === "running" ? "animate-pulse" : ""
+                      }`}
+                      title={head.liveStatus.charAt(0).toUpperCase() + head.liveStatus.slice(1)}
+                    />
+                  </div>
+                )}
               </div>
+              
+              {/* Vertical connector from dept head down */}
+              <div className="w-[2px] h-8 bg-zinc-600" />
 
-              {/* Divisions - full width with wrapping cards */}
-              <div className="space-y-6">
+              {/* Sub-agents stacked vertically */}
+              <div className="space-y-6 w-full max-w-[280px]">
                 {Object.entries(divisions).map(([divName, agentIds]) => (
                   <div key={divName} className="space-y-3">
                     <p className={`text-xs font-semibold uppercase tracking-wider ${colors.text} text-center`}>
                       {divName}
                     </p>
-                    {/* Agent cards in a flexible grid that wraps */}
-                    <div className="flex flex-wrap justify-center gap-4">
+                    {/* Agent cards stacked vertically */}
+                    <div className="space-y-3 flex flex-col items-center">
                       {agentIds.map((agentId) => (
                         <AgentCard key={agentId} agent={getAgent(agentId)} agentId={agentId} />
                       ))}
@@ -307,7 +306,7 @@ function AgentCard({
   const statusStyle = statusConfig[liveStatusKey];
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 hover:border-zinc-700 transition-colors group w-64 min-w-[16rem]">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 hover:border-zinc-700 transition-colors group w-full">
       <div className="flex items-center gap-2.5">
         <span className="text-base flex-shrink-0">{agent.emoji ?? "🤖"}</span>
         <div className="flex-1 min-w-0">
