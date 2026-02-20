@@ -203,11 +203,17 @@ export default function OrgChartPage() {
                   <p className={`text-[10px] font-semibold uppercase tracking-wider ${colors.text} px-2`}>
                     {divName}
                   </p>
-                  <div className="space-y-1.5">
-                    {agentIds.map((agentId) => {
+                  <div className="relative pl-4 space-y-1.5">
+                    {/* Continuous vertical line for the division */}
+                    <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-zinc-600" />
+                    {agentIds.map((agentId, idx) => {
                       const agent = getAgent(agentId);
                       return (
-                        <AgentCard key={agentId} agent={agent} agentId={agentId} />
+                        <div key={agentId} className="relative">
+                          {/* Horizontal connector stub from vertical line to card */}
+                          <div className="absolute left-[-16px] top-1/2 w-4 h-[2px] bg-zinc-600" />
+                          <AgentCard agent={agent} agentId={agentId} />
+                        </div>
                       );
                     })}
                   </div>
