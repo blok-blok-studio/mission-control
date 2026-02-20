@@ -3,6 +3,18 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import Link from "next/link";
+import { ActivityFeed } from "../components/ActivityFeed";
+import {
+  CheckCircle,
+  ArrowRight,
+  User,
+  FileText,
+  Bot,
+  ShieldCheck,
+  MessageSquare,
+  Brain,
+  Clock,
+} from "lucide-react";
 
 const statusColors: Record<string, string> = {
   backlog: "bg-zinc-700",
@@ -255,6 +267,16 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Activity Feed */}
+      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">📡 Activity Feed</h2>
+        </div>
+        <div className="max-h-[480px] overflow-y-auto pr-2">
+          <ActivityFeed limit={30} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -286,4 +308,80 @@ function StatCard({
       </p>
     </Link>
   );
+}
+
+const activityIcons: Record<string, React.ReactNode> = {
+  task_created: <FileText className="w-3.5 h-3.5 text-blue-400" />,
+  task_updated: <ArrowRight className="w-3.5 h-3.5 text-amber-400" />,
+  task_completed: <CheckCircle className="w-3.5 h-3.5 text-green-400" />,
+  content_created: <FileText className="w-3.5 h-3.5 text-purple-400" />,
+  content_stage_changed: <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />,
+  content_published: <CheckCircle className="w-3.5 h-3.5 text-green-400" />,
+  agent_status_changed: <Bot className="w-3.5 h-3.5 text-green-400" />,
+  approval_submitted: <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />,
+  approval_resolved: <ShieldCheck className="w-3.5 h-3.5 text-green-400" />,
+  cron_completed: <Clock className="w-3.5 h-3.5 text-zinc-400" />,
+  feedback_received: <MessageSquare className="w-3.5 h-3.5 text-pink-400" />,
+  memory_created: <Brain className="w-3.5 h-3.5 text-cyan-400" />,
+};
+
+const entityHref: Record<string, string> = {
+  task: "/tasks",
+  content: "/content",
+  agent: "/agents",
+  approval: "/approvals",
+  feedback: "/feedback",
+  memory: "/memories",
+};
+
+function timeAgo(ts: number): string {
+  const diff = Date.now() - ts;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+
+function ActivityRow({
+  activity,
+}: {
+  activity: {
+    _id: string;
+    type: string;
+    title: string;
+    description?: string;
+    actor?: string;
+    actorEmoji?: string;
+    entityType?: string;
+    createdAt: number;
+  };
+}) {
+  const href = activity.entityType ? entityHref[activity.entityType] : undefined;
+  const inner = (
+    <div className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-zinc-800/50 transition-colors group">
+      <span className="flex-shrink-0">
+        {activityIcons[activity.type] ?? <Clock className="w-3.5 h-3.5 text-zinc-500" />}
+      </span>
+      <span className="flex-shrink-0 text-sm">
+        {activity.actorEmoji ?? "⚡"}
+      </span>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm truncate">{activity.title}</p>
+        {activity.description && (
+          <p className="text-[10px] text-zinc-500 truncate">{activity.description}</p>
+        )}
+      </div>
+      <span className="text-[10px] text-zinc-600 flex-shrink-0">
+        {timeAgo(activity.createdAt)}
+      </span>
+    </div>
+  );
+
+  if (href) {
+    return <Link href={href}>{inner}</Link>;
+  }
+  return inner;
 }

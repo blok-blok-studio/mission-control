@@ -210,4 +210,43 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_category", ["category"])
     .index("by_submittedBy", ["submittedBy"]),
+
+  // Activity Feed
+  activities: defineTable({
+    type: v.union(
+      v.literal("task_created"),
+      v.literal("task_updated"),
+      v.literal("task_completed"),
+      v.literal("content_created"),
+      v.literal("content_stage_changed"),
+      v.literal("content_published"),
+      v.literal("agent_status_changed"),
+      v.literal("approval_submitted"),
+      v.literal("approval_resolved"),
+      v.literal("cron_completed"),
+      v.literal("feedback_received"),
+      v.literal("memory_created")
+    ),
+    title: v.string(),
+    description: v.optional(v.string()),
+    actor: v.optional(v.string()),
+    actorEmoji: v.optional(v.string()),
+    entityType: v.optional(
+      v.union(
+        v.literal("task"),
+        v.literal("content"),
+        v.literal("agent"),
+        v.literal("approval"),
+        v.literal("feedback"),
+        v.literal("memory"),
+        v.literal("cron")
+      )
+    ),
+    entityId: v.optional(v.string()),
+    metadata: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_createdAt", ["createdAt"])
+    .index("by_type", ["type"])
+    .index("by_actor", ["actor"]),
 });

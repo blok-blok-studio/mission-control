@@ -76,7 +76,25 @@ export const update = mutation({
     const filtered = Object.fromEntries(
       Object.entries(updates).filter(([, v]) => v !== undefined)
     );
-    await ctx.db.patch(id, { ...filtered, lastActiveAt: Date.now() });
+    const now = Date.now();
+    const agent = await ctx.db.get(id);
+    if (!agent) throw new Error("Agent not found");
+
+    await ctx.db.patch(id, { ...filtered, lastActiveAt: now });
+
+    // Log activity for status changes
+    if (args.status && args.status !== agent.status) {
+      await ctx.db.insert("activities", {
+        type: "agent_status_changed",
+        title: `${agent.name} is now ${args.status}`,
+        description: args.currentTask ?? undefined,
+        actor: agent.name,
+        actorEmoji: agent.emoji ?? undefined,
+        entityType: "agent",
+        entityId: id,
+        createdAt: now,
+      });
+    }
   },
 });
 

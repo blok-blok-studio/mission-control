@@ -52,11 +52,26 @@ export const create = mutation({
     actionData: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("approvals", {
+    const now = Date.now();
+    const approvalId = await ctx.db.insert("approvals", {
       ...args,
       status: "pending",
-      createdAt: Date.now(),
+      createdAt: now,
     });
+
+    // Log activity
+    await ctx.db.insert("activities", {
+      type: "approval_submitted",
+      title: `Approval requested: ${args.title}`,
+      description: `${args.category} • ${args.priority} priority`,
+      actor: args.submittedBy,
+      actorEmoji: args.submittedByEmoji,
+      entityType: "approval",
+      entityId: approvalId,
+      createdAt: now,
+    });
+
+    return approvalId;
   },
 });
 
@@ -67,10 +82,29 @@ export const resolve = mutation({
     reviewNote: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const now = Date.now();
+    
+    // Get current approval to get details
+    const approval = await ctx.db.get(args.id);
+    if (!approval) throw new Error("Approval not found");
+
     await ctx.db.patch(args.id, {
       status: args.status,
       reviewNote: args.reviewNote,
-      reviewedAt: Date.now(),
+      reviewedAt: now,
+    });
+
+    // Log activity
+    await ctx.db.insert("activities", {
+      type: "approval_resolved",
+      title: `Approval ${args.status}: ${approval.title}`,
+      description: args.reviewNote || `${args.status} by Chase`,
+      actor: "Chase",
+      actorEmoji: "👨‍💼",
+      entityType: "approval",
+      entityId: args.id,
+      metadata: args.status,
+      createdAt: now,
     });
   },
 });

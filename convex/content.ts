@@ -58,11 +58,25 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const now = Date.now();
-    return await ctx.db.insert("content", {
+    const contentId = await ctx.db.insert("content", {
       ...args,
       createdAt: now,
       updatedAt: now,
     });
+
+    // Log activity
+    await ctx.db.insert("activities", {
+      type: "content_created",
+      title: `New content: ${args.title}`,
+      description: args.platform ? `${args.platform} • ${args.stage}` : args.stage,
+      actor: "Nova",
+      actorEmoji: "🚀",
+      entityType: "content",
+      entityId: contentId,
+      createdAt: now,
+    });
+
+    return contentId;
   },
 });
 
@@ -104,7 +118,27 @@ export const update = mutation({
     const filtered = Object.fromEntries(
       Object.entries(updates).filter(([, v]) => v !== undefined)
     );
-    await ctx.db.patch(id, { ...filtered, updatedAt: Date.now() });
+    const now = Date.now();
+
+    // Get current content to compare
+    const content = await ctx.db.get(id);
+    if (!content) throw new Error("Content not found");
+
+    await ctx.db.patch(id, { ...filtered, updatedAt: now });
+
+    // Log activity for stage changes
+    if (args.stage && args.stage !== content.stage) {
+      await ctx.db.insert("activities", {
+        type: args.stage === "published" ? "content_published" : "content_stage_changed",
+        title: `Content ${args.stage === "published" ? "published" : "moved"}: ${content.title}`,
+        description: `${content.stage} → ${args.stage}`,
+        actor: "Nova",
+        actorEmoji: "🚀",
+        entityType: "content",
+        entityId: id,
+        createdAt: now,
+      });
+    }
   },
 });
 
