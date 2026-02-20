@@ -249,4 +249,18 @@ export default defineSchema({
     .index("by_createdAt", ["createdAt"])
     .index("by_type", ["type"])
     .index("by_actor", ["actor"]),
+
+  // Agent Status (Live Status Tracking)
+  agentStatus: defineTable({
+    agentId: v.string(),
+    name: v.string(),
+    role: v.string(),
+    status: v.union(
+      v.literal("running"),
+      v.literal("idle"),
+      v.literal("stopped")
+    ),
+    currentTask: v.optional(v.string()),
+    lastUpdated: v.number(),
+  }).index("by_agentId", ["agentId"]),
 });

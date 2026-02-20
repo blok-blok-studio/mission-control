@@ -4,6 +4,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import Link from "next/link";
 import { ActivityFeed } from "../components/ActivityFeed";
+import { AgentStatusPanel } from "../components/AgentStatusPanel";
 import {
   CheckCircle,
   ArrowRight,
@@ -150,6 +151,9 @@ export default function Dashboard() {
           );
         })}
       </div>
+
+      {/* Agent Status Panel - Live Real-Time Status */}
+      <AgentStatusPanel />
 
       {/* Two-column layout */}
       <div className="grid grid-cols-2 gap-6">
