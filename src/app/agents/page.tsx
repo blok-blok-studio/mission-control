@@ -137,140 +137,65 @@ export default function OrgChartPage() {
         <Connector />
       </div>
 
-      {/* Tree connector: Cortana → Department Heads */}
-      <div className="flex justify-center relative h-12">
-        {/* Vertical drop from Cortana */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[2px] h-6 bg-zinc-600" />
-        {/* Horizontal bar spanning all dept heads */}
-        <div className="absolute top-6 left-[12%] right-[12%] h-[2px] bg-zinc-600" />
-        {/* Vertical drops to each dept head */}
-        <div className="absolute top-6 left-[18.5%] w-[2px] h-6 bg-zinc-600" />
-        <div className="absolute top-6 left-[40.5%] w-[2px] h-6 bg-zinc-600" />
-        <div className="absolute top-6 left-[59.5%] w-[2px] h-6 bg-zinc-600" />
-        <div className="absolute top-6 left-[81.5%] w-[2px] h-6 bg-zinc-600" />
+      {/* Simple connector from Cortana down */}
+      <div className="flex justify-center">
+        <div className="w-[2px] h-8 bg-zinc-600" />
       </div>
 
       {/* Department Heads + Their Teams */}
-      <div className="grid grid-cols-4 gap-5">
+      <div className="space-y-12">
         {deptHeads.map(({ key, name, dept }) => {
           const head = getDeptHead(name);
           const colors = deptColors[dept] ?? deptColors.Engineering;
           const divisions = orgStructure[key as keyof typeof orgStructure];
 
           return (
-            <div key={key} className="space-y-3">
-              {/* Department Head */}
-              <div className={`bg-zinc-900 ${colors.border} border rounded-xl p-4 text-center relative`}>
-                <div className={`w-11 h-11 rounded-full ${colors.bg} flex items-center justify-center text-lg mx-auto mb-2`}>
-                  {head?.emoji ?? "🤖"}
-                </div>
-                <p className="font-bold text-sm">{name}</p>
-                <p className="text-[11px] text-zinc-400">{head?.role ?? dept}</p>
-                {head?.model && (
-                  <span className={`inline-block text-[9px] px-1.5 py-0.5 rounded mt-1.5 ${tierBadge[head.tier ?? "sonnet"].bg} ${tierBadge[head.tier ?? "sonnet"].text}`}>
-                    {head.model}
-                  </span>
-                )}
-                {/* LED Status on the RIGHT side */}
-                {head && head.liveStatus && (
-                  <div className="absolute top-4 right-4">
-                    <div
-                      className={`w-3 h-3 rounded-full ${statusConfig[head.liveStatus].bg} ${statusConfig[head.liveStatus].glow} ${
-                        head.liveStatus === "running" ? "animate-pulse" : ""
-                      }`}
-                      title={head.liveStatus.charAt(0).toUpperCase() + head.liveStatus.slice(1)}
-                    />
+            <div key={key} className="space-y-4">
+              {/* Department Head - centered */}
+              <div className="flex flex-col items-center">
+                <div className={`bg-zinc-900 ${colors.border} border rounded-xl p-4 text-center relative w-80`}>
+                  <div className={`w-11 h-11 rounded-full ${colors.bg} flex items-center justify-center text-lg mx-auto mb-2`}>
+                    {head?.emoji ?? "🤖"}
                   </div>
-                )}
+                  <p className="font-bold text-sm">{name}</p>
+                  <p className="text-[11px] text-zinc-400">{head?.role ?? dept}</p>
+                  {head?.model && (
+                    <span className={`inline-block text-[9px] px-1.5 py-0.5 rounded mt-1.5 ${tierBadge[head.tier ?? "sonnet"].bg} ${tierBadge[head.tier ?? "sonnet"].text}`}>
+                      {head.model}
+                    </span>
+                  )}
+                  {/* LED Status on the RIGHT side */}
+                  {head && head.liveStatus && (
+                    <div className="absolute top-4 right-4">
+                      <div
+                        className={`w-3 h-3 rounded-full ${statusConfig[head.liveStatus].bg} ${statusConfig[head.liveStatus].glow} ${
+                          head.liveStatus === "running" ? "animate-pulse" : ""
+                        }`}
+                        title={head.liveStatus.charAt(0).toUpperCase() + head.liveStatus.slice(1)}
+                      />
+                    </div>
+                  )}
+                </div>
+                {/* Vertical connector from dept head down */}
+                <div className="w-[2px] h-8 bg-zinc-600" />
               </div>
 
-              {/* Tree connector from head to divisions */}
-              <div className="relative h-8 flex justify-center">
-                {/* Vertical drop from dept head */}
-                <div className="absolute top-0 w-[2px] h-4 bg-zinc-600" />
-                {/* Horizontal bar spanning divisions */}
-                {Object.keys(divisions).length > 1 && (
-                  <div className="absolute top-4 left-[20%] right-[20%] h-[2px] bg-zinc-600" />
-                )}
-                {/* Vertical drops to each division */}
-                {Object.keys(divisions).length === 1 ? (
-                  <div className="absolute top-4 w-[2px] h-4 bg-zinc-600" />
-                ) : Object.keys(divisions).length === 2 ? (
-                  <>
-                    <div className="absolute top-4 left-[30%] w-[2px] h-4 bg-zinc-600" />
-                    <div className="absolute top-4 right-[30%] w-[2px] h-4 bg-zinc-600" />
-                  </>
-                ) : Object.keys(divisions).length === 3 ? (
-                  <>
-                    <div className="absolute top-4 left-[25%] w-[2px] h-4 bg-zinc-600" />
-                    <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[2px] h-4 bg-zinc-600" />
-                    <div className="absolute top-4 right-[25%] w-[2px] h-4 bg-zinc-600" />
-                  </>
-                ) : (
-                  <>
-                    <div className="absolute top-4 left-[20%] w-[2px] h-4 bg-zinc-600" />
-                    <div className="absolute top-4 left-[40%] w-[2px] h-4 bg-zinc-600" />
-                    <div className="absolute top-4 right-[40%] w-[2px] h-4 bg-zinc-600" />
-                    <div className="absolute top-4 right-[20%] w-[2px] h-4 bg-zinc-600" />
-                  </>
-                )}
-              </div>
-
-              {/* Divisions */}
-              {Object.entries(divisions).map(([divName, agentIds]) => (
-                <div key={divName} className="mb-4">
-                  <p className={`text-[10px] font-semibold uppercase tracking-wider ${colors.text} px-2 text-center mb-2`}>
-                    {divName}
-                  </p>
-                  {/* Tree structure for agents in this division */}
-                  <div className="relative">
-                    {/* Single agent - just vertical line */}
-                    {agentIds.length === 1 && (
-                      <div className="flex flex-col items-center">
-                        <div className="w-[2px] h-4 bg-zinc-600" />
-                        <AgentCard agent={getAgent(agentIds[0])} agentId={agentIds[0]} />
-                      </div>
-                    )}
-                    
-                    {/* Multiple agents - tree structure */}
-                    {agentIds.length > 1 && (
-                      <div className="flex flex-col items-center">
-                        {/* Vertical drop from division label */}
-                        <div className="w-[2px] h-4 bg-zinc-600 mb-0" />
-                        {/* Horizontal bar + vertical drops container */}
-                        <div className="relative w-full h-6 mb-2">
-                          {/* Horizontal bar spanning agents */}
-                          <div 
-                            className="absolute top-0 h-[2px] bg-zinc-600"
-                            style={{
-                              left: `${100 / (agentIds.length * 2)}%`,
-                              right: `${100 / (agentIds.length * 2)}%`
-                            }}
-                          />
-                          {/* Vertical drops to each agent */}
-                          {agentIds.map((_, idx) => {
-                            const spacing = 100 / (agentIds.length + 1);
-                            const leftPercent = spacing * (idx + 1);
-                            return (
-                              <div
-                                key={idx}
-                                className="absolute top-0 w-[2px] h-6 bg-zinc-600"
-                                style={{ left: `${leftPercent}%`, transform: 'translateX(-1px)' }}
-                              />
-                            );
-                          })}
-                        </div>
-                        {/* Agent cards in a row */}
-                        <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${agentIds.length}, 1fr)` }}>
-                          {agentIds.map((agentId) => (
-                            <AgentCard key={agentId} agent={getAgent(agentId)} agentId={agentId} />
-                          ))}
-                        </div>
-                      </div>
-                    )}
+              {/* Divisions - full width with wrapping cards */}
+              <div className="space-y-6">
+                {Object.entries(divisions).map(([divName, agentIds]) => (
+                  <div key={divName} className="space-y-3">
+                    <p className={`text-xs font-semibold uppercase tracking-wider ${colors.text} text-center`}>
+                      {divName}
+                    </p>
+                    {/* Agent cards in a flexible grid that wraps */}
+                    <div className="flex flex-wrap justify-center gap-4">
+                      {agentIds.map((agentId) => (
+                        <AgentCard key={agentId} agent={getAgent(agentId)} agentId={agentId} />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           );
         })}
@@ -371,7 +296,7 @@ function AgentCard({
 }) {
   if (!agent) {
     return (
-      <div className="bg-zinc-900/50 border border-dashed border-zinc-800 rounded-lg px-3 py-2 text-center">
+      <div className="bg-zinc-900/50 border border-dashed border-zinc-800 rounded-lg px-3 py-2 text-center w-64 min-w-[16rem]">
         <p className="text-[10px] text-zinc-700">{agentId}</p>
       </div>
     );
@@ -382,7 +307,7 @@ function AgentCard({
   const statusStyle = statusConfig[liveStatusKey];
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 hover:border-zinc-700 transition-colors group">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 hover:border-zinc-700 transition-colors group w-64 min-w-[16rem]">
       <div className="flex items-center gap-2.5">
         <span className="text-base flex-shrink-0">{agent.emoji ?? "🤖"}</span>
         <div className="flex-1 min-w-0">
